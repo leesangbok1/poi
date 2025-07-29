@@ -1,0 +1,41 @@
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #F9FAFB;
+}
+.version-toggle button {
+    transition: all 0.2s ease-in-out;
+    color: #9ca3af; /* gray-400 */
+}
+.version-toggle button.active {
+    transform: scale(1.1);
+}
+/* Icon color changes on active */
+#showA.active i { color: #22c55e; } /* green-500 */
+#showB.active i { color: #3b82f6; } /* blue-600 */
+
+.post-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+.search-container, .posts-container {
+    transition: opacity 0.3s ease-in-out;
+}
+.lang-menu a:hover {
+    background-color: #f3f4f6;
+}
+.category-box {
+    display: block;
+    padding: 0.75rem 0.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    transition: all 0.2s ease-in-out;
+}
+.category-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    color: #2563eb; /* blue-600 */
+}
