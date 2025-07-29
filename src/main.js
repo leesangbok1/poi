@@ -1,25 +1,24 @@
 import './style.css';
 
-// Firebase SDK import
+// Firebase SDK import (Firestore만 사용)
 import { initializeApp } from "firebase/app";
-import { getAnalytics, logEvent } from "firebase/analytics";
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 // --- Firebase Configuration ---
-// 중요: 이 값들은 실제 Firebase 프로젝트의 값으로 채워야 합니다.
-// Vite 환경이 아니므로, import.meta.env 대신 실제 값을 사용합니다.
+// 이전에 제공해주신 실제 키 값으로 설정했습니다.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID",
+  apiKey: "AIzaSyD2QPAw8vXMiUq3Y5UqIEYmBJ83kR_wZiQ",
+  authDomain: "bkbk-4a19b.firebaseapp.com",
+  projectId: "bkbk-4a19b",
+  storageBucket: "bkbk-4a19b.appspot.com",
+  messagingSenderId: "832841055194",
+  appId: "1:832841055194:web:283fb5b9c4ac9ccb8c1ee3",
+  measurementId: "G-QSTGG3WLSS"
 };
 
-// --- Firebase & Analytics Initialization ---
+// --- Firebase & Firestore Initialization ---
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
 // --- App HTML Structure ---
 const appContainer = document.getElementById('app');
@@ -58,24 +57,14 @@ const appHTML = `
         </div>
     </header>
 
-    <div class="w-full pt-32 pb-12 px-4 flex flex-col items-center">
-        <div class="version-toggle mb-12 flex items-center space-x-8">
-            <button id="showA" title="직접 질문하기">
-                <i class="fa-solid fa-pen-to-square text-2xl"></i>
-            </button>
-            <div class="h-6 w-px bg-gray-300"></div>
-            <button id="showB" title="지식 검색하기">
-                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
-            </button>
-        </div>
-
+    <div id="mainContent" class="w-full pt-32 pb-12 px-4 flex flex-col items-center">
         <!-- Version A: 직접 질문 (Question First) -->
-        <main id="versionA" class="w-full max-w-3xl text-center mx-auto search-container">
+        <main id="versionA" class="w-full max-w-3xl text-center mx-auto search-container hidden">
             <h1 class="text-2xl md:text-3xl font-medium text-gray-800 mb-10">한국 생활이 막막할 땐? <span class="text-green-600 font-semibold">한국 생활 선경험자</span>에게 바로 질문하세요.</h1>
             <div class="relative w-full shadow-lg rounded-lg bg-white p-4">
                 <textarea placeholder="예: 한국에서 은행 계좌를 만들려면 뭐가 필요한가요?" class="w-full p-2 rounded-md text-lg border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500" rows="6"></textarea>
                 <div class="text-right mt-3">
-                    <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-8 rounded-lg text-md">
+                    <button id="ctaButtonA" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-8 rounded-lg text-md">
                         질문 등록
                     </button>
                 </div>
@@ -89,12 +78,12 @@ const appHTML = `
             </h1>
             <div class="relative w-full shadow-lg rounded-full mb-8">
                 <input type="text" placeholder="궁금한 것을 검색하세요 (예: F-2-R 비자 신청)" class="w-full py-4 pl-6 pr-52 rounded-full text-lg border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-full flex items-center text-lg">
+                <button id="ctaButtonB" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-full flex items-center text-lg">
                     <i class="fa-solid fa-magnifying-glass mr-2"></i>
                     <span>검증된 지식 검색</span>
                 </button>
             </div>
-            <div class="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
+             <div class="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
                 <a href="#" class="category-box"><i class="fa-solid fa-passport text-xl mb-1"></i><span class="font-medium text-sm">비자</span></a>
                 <a href="#" class="category-box"><i class="fa-solid fa-briefcase text-xl mb-1"></i><span class="font-medium text-sm">근무</span></a>
                 <a href="#" class="category-box"><i class="fa-solid fa-graduation-cap text-xl mb-1"></i><span class="font-medium text-sm">유학</span></a>
@@ -114,7 +103,7 @@ appContainer.innerHTML = appHTML;
 const postsA_HTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
         <div>
-            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">최신 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-green-600">더보기 &gt;</a></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">최신 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-green-600 more-button">더보기 &gt;</a></div>
             <div class="space-y-4">
                 <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
                     <div>
@@ -130,17 +119,10 @@ const postsA_HTML = `
                     </div>
                     <div class="text-right flex-shrink-0 ml-4"><span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">18분 전</span></div>
                 </a>
-                <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
-                    <div>
-                        <p class="text-gray-800"><span class="font-bold text-green-600">Q.</span> 한국 운전면허 교환 발급, 직접 해봤습...</p>
-                        <div class="mt-2 text-sm text-gray-700"><span class="font-semibold text-green-800">답변:</span> <span class="font-medium">quang_drive</span> <span class="text-xs text-gray-500">(D-2 유학생 인증 <i class="fa-solid fa-check-circle text-green-500"></i>)</span></div>
-                    </div>
-                    <div class="text-right flex-shrink-0 ml-4"><span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">55분 전</span></div>
-                </a>
             </div>
         </div>
         <div>
-            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">주간 인기 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-green-600">더보기 &gt;</a></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">주간 인기 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-green-600 more-button">더보기 &gt;</a></div>
             <div class="space-y-4">
                 <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
                     <div>
@@ -162,16 +144,6 @@ const postsA_HTML = `
                         <span class="text-xs text-gray-500 flex items-center justify-end"><i class="fa-solid fa-eye mr-1"></i> 12.1k</span>
                     </div>
                 </a>
-                <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
-                    <div>
-                        <p class="text-gray-800"><span class="font-bold text-green-600">Q.</span> 다들 고향에 돈 보낼 때 어떤 앱 쓰세요...</p>
-                        <div class="mt-2 text-sm text-gray-700"><span class="font-semibold text-green-800">답변:</span> <span class="font-medium">linh_money</span> <span class="text-xs text-gray-500">(F-6 비자 인증 <i class="fa-solid fa-check-circle text-green-500"></i>)</span></div>
-                    </div>
-                    <div class="text-right flex-shrink-0 ml-4 space-y-1">
-                        <span class="text-xs text-red-500 flex items-center justify-end"><i class="fa-solid fa-heart mr-1"></i> 812</span>
-                        <span class="text-xs text-gray-500 flex items-center justify-end"><i class="fa-solid fa-eye mr-1"></i> 10.5k</span>
-                    </div>
-                </a>
             </div>
         </div>
     </div>`;
@@ -179,7 +151,7 @@ const postsA_HTML = `
 const postsB_HTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
         <div>
-            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">최신 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-blue-600">더보기 &gt;</a></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">최신 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-blue-600 more-button">더보기 &gt;</a></div>
             <div class="space-y-4">
                 <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
                     <div>
@@ -195,17 +167,10 @@ const postsB_HTML = `
                     </div>
                     <div class="text-right flex-shrink-0 ml-4"><span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">3시간 전</span></div>
                 </a>
-                <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
-                    <div>
-                        <p class="text-gray-800"><span class="font-bold text-blue-600">Q.</span> 사업자 등록 시 필요한 서류는 무엇인...</p>
-                        <div class="mt-2 text-sm text-gray-700"><span class="font-semibold text-blue-800">답변:</span> <span class="font-medium">admin_pro</span> <span class="text-xs text-gray-500">(행정사 인증 <i class="fa-solid fa-check-circle text-blue-500"></i>)</span></div>
-                    </div>
-                    <div class="text-right flex-shrink-0 ml-4"><span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md">5시간 전</span></div>
-                </a>
             </div>
         </div>
         <div>
-            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">주간 인기 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-blue-600">더보기 &gt;</a></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">주간 인기 게시글</h2><a href="#" class="text-sm font-medium text-gray-500 hover:text-blue-600 more-button">더보기 &gt;</a></div>
             <div class="space-y-4">
                 <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
                     <div>
@@ -227,16 +192,6 @@ const postsB_HTML = `
                         <span class="text-xs text-gray-500 flex items-center justify-end"><i class="fa-solid fa-eye mr-1"></i> 19.5k</span>
                     </div>
                 </a>
-                <a href="#" class="post-card flex justify-between items-center p-4 bg-white rounded-lg shadow-md">
-                    <div>
-                        <p class="text-gray-800"><span class="font-bold text-blue-600">Q.</span> 부당해고 구제신청, 어떻게 준비해야...</p>
-                        <div class="mt-2 text-sm text-gray-700"><span class="font-semibold text-blue-800">답변:</span> <span class="font-medium">help_labor</span> <span class="text-xs text-gray-500">(노무사 인증 <i class="fa-solid fa-check-circle text-blue-500"></i>)</span></div>
-                    </div>
-                    <div class="text-right flex-shrink-0 ml-4 space-y-1">
-                        <span class="text-xs text-red-500 flex items-center justify-end"><i class="fa-solid fa-heart mr-1"></i> 1,570</span>
-                        <span class="text-xs text-gray-500 flex items-center justify-end"><i class="fa-solid fa-eye mr-1"></i> 18.1k</span>
-                    </div>
-                </a>
             </div>
         </div>
     </div>`;
@@ -244,19 +199,45 @@ const postsB_HTML = `
 document.getElementById('postsA').innerHTML = postsA_HTML;
 document.getElementById('postsB').innerHTML = postsB_HTML;
 
-// --- Event Listeners and Functions ---
+// --- Firestore Logging Function ---
+async function logToFirestore(eventName, eventData = {}) {
+  try {
+    const docRef = await addDoc(collection(db, "ab_test_events"), {
+      name: eventName,
+      ...eventData,
+      timestamp: serverTimestamp()
+    });
+    console.log(`Event '${eventName}' logged to Firestore with ID: ${docRef.id}`);
+  } catch (e) {
+    console.error("Error adding document to Firestore: ", e);
+  }
+}
 
-// We need to re-select the buttons after injecting the HTML
-const showAButton = document.getElementById('showA');
-const showBButton = document.getElementById('showB');
+// --- A/B Test & UI Control Logic ---
 
-showAButton.addEventListener('click', () => switchVersion('A'));
-showBButton.addEventListener('click', () => switchVersion('B'));
+function runAbTest() {
+    let assignedVersion = localStorage.getItem('abTestVersion');
 
-function switchVersion(version) {
+    if (!assignedVersion) {
+        assignedVersion = Math.random() < 0.5 ? 'A' : 'B';
+        localStorage.setItem('abTestVersion', assignedVersion);
+    }
+    
+    switchUiToVersion(assignedVersion);
+    
+    const eventName = assignedVersion === 'A' ? 'view_version_A' : 'view_version_B';
+    logToFirestore(eventName);
+    
+    console.log(`User assigned to version: ${assignedVersion}`);
+
+    // Set up the global click listener for the assigned version
+    trackFirstEngagement(assignedVersion);
+}
+
+function switchUiToVersion(version) {
     const elements = {
-        A: { main: document.getElementById('versionA'), posts: document.getElementById('postsA'), button: document.getElementById('showA') },
-        B: { main: document.getElementById('versionB'), posts: document.getElementById('postsB'), button: document.getElementById('showB') }
+        A: { main: document.getElementById('versionA'), posts: document.getElementById('postsA') },
+        B: { main: document.getElementById('versionB'), posts: document.getElementById('postsB') }
     };
 
     const show = elements[version];
@@ -266,18 +247,24 @@ function switchVersion(version) {
     show.posts.classList.remove('hidden');
     hide.main.classList.add('hidden');
     hide.posts.classList.add('hidden');
-
-    show.button.classList.add('active');
-    hide.button.classList.remove('active');
-    
-    // Log A/B version view event to Firebase Analytics
-    const eventName = version === 'A' ? 'view_version_a' : 'view_version_b';
-    logEvent(analytics, eventName, {
-        page_title: document.title
-    });
-    console.log(`Logged event: ${eventName}`);
 }
 
+// New function to track the very first user interaction
+function trackFirstEngagement(version) {
+    const mainContent = document.getElementById('mainContent');
+    if (!mainContent) return;
+
+    mainContent.addEventListener('click', (event) => {
+        // We only care about clicks on actual interactive elements like buttons or links
+        if (event.target.closest('button, a')) {
+            const eventName = `click_version_${version}`;
+            logToFirestore(eventName);
+            console.log(`First engagement logged for version ${version}`);
+        }
+    }, { once: true }); // The { once: true } option is key. It removes the listener after the first click.
+}
+
+// --- Initial Setup ---
 function setupMenuToggle(buttonId, menuId) {
     const button = document.getElementById(buttonId);
     const menu = document.getElementById(menuId);
@@ -289,18 +276,6 @@ function setupMenuToggle(buttonId, menuId) {
     }
 }
 
-// Analytics function
-function trackPageView() {
-  const pagePath = window.location.pathname + window.location.search;
-  logEvent(analytics, 'page_view', {
-    page_path: pagePath,
-    page_title: document.title,
-  });
-  console.log(`Logged page view for: ${pagePath}`);
-}
-
-
-// --- Initial Setup ---
 setupMenuToggle('userMenuButton', 'userMenu');
 setupMenuToggle('langMenuButton', 'langMenu');
 
@@ -318,6 +293,5 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Initial page setup
-switchVersion('A');
-trackPageView();
+// Run the A/B test
+runAbTest();
