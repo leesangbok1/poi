@@ -1,18 +1,19 @@
 import { renderAnswerCard } from '../components/AnswerCard.js';
 
-export function renderPostDetailPage(container, post) {
+export function renderPostDetailPage(container, post, currentUser) {
     if (!post) {
         container.innerHTML = `<p>게시글을 찾을 수 없습니다.</p><a href="#" class="back-button">홈으로 돌아가기</a>`;
         return;
     }
 
-    const answersHTML = post.answers.map(answer => renderAnswerCard(answer)).join('');
+    const isPostAuthor = currentUser && currentUser.id === post.authorId;
+    const answersHTML = post.answers.map(answer => renderAnswerCard(answer, isPostAuthor)).join('');
 
     container.innerHTML = `
         <div class="post-detail-page">
             <a class="back-button">&lt; 목록으로 돌아가기</a>
             <div class="post-content-card">
-                <h1>${post.title}</h1>
+                <h1>${post.title} <button class="share-button" data-post-id="${post.id}" title="공유하기"><i class="fa-solid fa-share-nodes"></i></button></h1>
                 <div class="post-meta">
                     <img src="${post.author.profilePic}" alt="${post.author.name}" class="author-pic-small">
                     <span>작성자: ${post.author.name}</span>

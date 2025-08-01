@@ -9,7 +9,9 @@ import {
     signInWithGoogle,
     signInWithFacebook,
     signOutUser,
-    onAuthChange
+    onAuthChange,
+    getUser,
+    deletePost
 } from './api/firebase.js';
 import { renderHeader } from './components/Header.js';
 import { renderSpinner } from './components/Spinner.js';
@@ -17,6 +19,8 @@ import { renderHomePage } from './pages/HomePage.js';
 import { renderPostDetailPage } from './pages/PostDetailPage.js';
 import { renderAllPostsPage } from './pages/AllPostsPage.js';
 import { renderLoginModal } from './components/LoginModal.js';
+import { renderCertificationModal } from './components/CertificationModal.js';
+import { renderAdminDashboardModal } from './components/AdminDashboardModal.js';
 import { initI18n, setLanguage, getLanguage } from './i18n/i18n.js';
 
 // --- GLOBAL STATE ---
@@ -35,9 +39,12 @@ const state = {
     firstVisiblePost: null,
     currentPageNumber: 1,
     activeFilter: { type: null, value: null },
+    activeSort: 'createdAt',
     isUserDropdownOpen: false,
     isLangDropdownOpen: false,
     isLoginModalOpen: false,
+    isCertificationModalOpen: false,
+    isAdminModalOpen: false,
 };
 
 // --- MODAL & DROPDOWN CONTROL ---
@@ -59,6 +66,46 @@ function closeLoginModal() {
         modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true });
     }
     state.isLoginModalOpen = false;
+}
+
+function openCertificationModal() {
+    if (state.isCertificationModalOpen) return;
+    state.isCertificationModalOpen = true;
+    const modalHTML = renderCertificationModal();
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    setTimeout(() => {
+        document.getElementById('certification-modal')?.classList.add('show');
+    }, 10);
+}
+
+function closeCertificationModal() {
+    if (!state.isCertificationModalOpen) return;
+    const modalOverlay = document.getElementById('certification-modal');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('show');
+        modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true });
+    }
+    state.isCertificationModalOpen = false;
+}
+
+function openAdminModal() {
+    if (state.isAdminModalOpen) return;
+    state.isAdminModalOpen = true;
+    const modalHTML = renderAdminDashboardModal(state.allPosts);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    setTimeout(() => {
+        document.getElementById('admin-dashboard-modal')?.classList.add('show');
+    }, 10);
+}
+
+function closeAdminModal() {
+    if (!state.isAdminModalOpen) return;
+    const modalOverlay = document.getElementById('admin-dashboard-modal');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('show');
+        modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true });
+    }
+    state.isAdminModalOpen = false;
 }
 
 function toggleDropdown(type, forceClose = false) {
@@ -96,7 +143,8 @@ async function navigate(page, payload = null) {
         render(postData);
         return;
     } else if (page === 'allPosts') {
-        state.activeFilter = payload || { type: null, value: null };
+        state.activeFilter = payload?.filter || { type: null, value: null };
+        state.activeSort = payload?.sort || 'createdAt';
         state.currentPageNumber = 1;
         state.lastVisiblePost = null;
         state.firstVisiblePost = null;
@@ -124,20 +172,39 @@ function render(data = null) {
             renderHomePage(pageContainer, state);
             break;
         case 'postDetail':
-            renderPostDetailPage(pageContainer, data);
+            renderPostDetailPage(pageContainer, data, state.currentUser);
             break;
         case 'allPosts':
             renderAllPostsPage(pageContainer, state);
             break;
     }
+
+    // Render admin button if current user is admin
+    if (state.currentUser && state.currentUser.isAdmin) {
+        const adminButton = `<button id="admin-dashboard-button" class="menu-button" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000; background-color: #f44336; color: white;"><i class="fa-solid fa-user-gear"></i></button>`;
+        document.body.insertAdjacentHTML('beforeend', adminButton);
+    }
 }
 
 // --- DATA HANDLING ---
 async function handleFetchPaginatedPosts(direction) {
+    let startDoc = null;
+    let endDoc = null;
+
+    if (direction === 'next') {
+        startDoc = state.lastVisiblePost;
+    } else if (direction === 'prev') {
+        endDoc = state.firstVisiblePost;
+    } else if (direction === 'current') { // For re-fetching current page after like
+        startDoc = state.firstVisiblePost; // Start from the first visible post of the current page
+        endDoc = null; // Don't use endBefore for current, just re-fetch from start
+    }
+
     const { posts, firstVisible, lastVisible } = await fetchPaginatedPosts(
         state.activeFilter,
-        direction === 'next' ? state.lastVisiblePost : null,
-        direction === 'prev' ? state.firstVisiblePost : null,
+        state.activeSort,
+        startDoc,
+        endDoc,
         state.users
     );
     if (posts.length > 0) {
@@ -145,9 +212,12 @@ async function handleFetchPaginatedPosts(direction) {
         state.firstVisiblePost = firstVisible;
         state.lastVisiblePost = lastVisible;
         if (direction === 'next') state.currentPageNumber++;
-        if (direction === 'prev') state.currentPageNumber = Math.max(1, state.currentPageNumber - 1);
+        else if (direction === 'prev') state.currentPageNumber = Math.max(1, state.currentPageNumber - 1);
+        // No page number change for 'current' direction
     } else if (direction === 'next') {
         alert("마지막 페이지입니다.");
+    } else if (direction === 'prev') {
+        alert("첫 페이지입니다.");
     }
 }
 
@@ -177,12 +247,28 @@ function setupEventListeners() {
                 openLoginModal();
                 return;
             }
+            if (!state.currentUser.certification) { // Check for certification
+                openCertificationModal();
+                return;
+            }
             const content = e.target.elements['answer-content'].value.trim();
             const postId = e.target.dataset.postId;
             if (content && postId) {
                 e.target.elements['answer-content'].value = '';
                 await createAnswer(postId, content, state.currentUser);
                 await navigate('postDetail', postId);
+            }
+        } else if (e.target.matches('#certification-form')) {
+            e.preventDefault();
+            const type = e.target.elements['certification-type'].value;
+            const file = e.target.elements['certification-file'].files[0];
+            if (type && file) {
+                console.log('Certification submitted:', { type, fileName: file.name, fileSize: file.size });
+                // Here you would typically upload the file to a server
+                // and upon successful verification, update the user's state.
+                // For now, we'll just close the modal.
+                closeCertificationModal();
+                alert('인증 서류가 제출되었습니다. 관리자 확인 후 반영됩니다.');
             }
         }
     });
@@ -218,6 +304,14 @@ function setupEventListeners() {
                 console.error("Facebook login failed:", error);
             }
         } 
+        // Certification Modal
+        else if (target.closest('#certification-button')) {
+            e.preventDefault();
+            openCertificationModal();
+        } else if (target.closest('.close-modal-button[data-target="#certification-modal"]') || target.id === 'certification-modal') {
+            e.preventDefault();
+            closeCertificationModal();
+        }
         // Dropdown & Language
         else if (target.closest('#user-profile-pic')) {
             e.preventDefault();
@@ -253,7 +347,11 @@ function setupEventListeners() {
             e.preventDefault();
             const type = target.dataset.type;
             const value = target.dataset.value;
-            navigate('allPosts', { type, value });
+            navigate('allPosts', { filter: { type, value } });
+        } else if (target.matches('.sort-button')) {
+            e.preventDefault();
+            const sortType = target.dataset.sortType;
+            navigate('allPosts', { sort: sortType });
         } else if (target.matches('.next-page-button')) {
             e.preventDefault();
             state.isLoading = true; render();
@@ -264,6 +362,73 @@ function setupEventListeners() {
             state.isLoading = true; render();
             await handleFetchPaginatedPosts('prev');
             state.isLoading = false; render();
+        } else if (target.closest('.like-button')) {
+            e.preventDefault();
+            if (!state.currentUser) {
+                openLoginModal();
+                return;
+            }
+            const button = target.closest('.like-button');
+            const type = button.dataset.type; // 'post' or 'answer'
+            const id = button.dataset.id;
+            const postId = button.dataset.postId; // Only for answers
+
+            try {
+                await updateLikes(type, id, postId);
+                // Re-render the current page to reflect updated likes
+                if (state.currentPage === 'postDetail') {
+                    navigate('postDetail', state.currentPostId);
+                } else if (state.currentPage === 'allPosts') {
+                    await handleFetchPaginatedPosts('current'); // Re-fetch current page posts
+                } else if (state.currentPage === 'home') {
+                    navigate('home');
+                }
+            } catch (error) {
+                console.error("Error updating likes:", error);
+                alert("좋아요 업데이트에 실패했습니다.");
+            }
+        } else if (target.closest('.share-button')) {
+            e.preventDefault();
+            const postId = target.closest('.share-button').dataset.postId;
+            const postUrl = `${window.location.origin}/#postDetail/${postId}`;
+            try {
+                await navigator.clipboard.writeText(postUrl);
+                alert('게시글 링크가 클립보드에 복사되었습니다!');
+            } catch (err) {
+                console.error('클립보드 복사 실패:', err);
+                alert('게시글 링크 복사에 실패했습니다.');
+            }
+        } else if (target.closest('.accept-answer-button')) {
+            e.preventDefault();
+            const button = target.closest('.accept-answer-button');
+            const answerId = button.dataset.answerId;
+            const postId = button.dataset.postId;
+
+            try {
+                await acceptAnswer(postId, answerId);
+                alert('답변이 채택되었습니다!');
+                navigate('postDetail', postId); // Re-render post detail page
+            } catch (error) {
+                console.error("답변 채택 실패:", error);
+                alert("답변 채택에 실패했습니다.");
+            }
+        } else if (target.matches('#admin-dashboard-button')) {
+            e.preventDefault();
+            openAdminModal();
+        } else if (target.matches('.delete-post-button')) {
+            e.preventDefault();
+            const postIdToDelete = target.dataset.postId;
+            if (confirm(`정말로 이 게시글 (ID: ${postIdToDelete})을 삭제하시겠습니까?`)) {
+                try {
+                    await deletePost(postIdToDelete);
+                    alert('게시글이 삭제되었습니다.');
+                    closeAdminModal();
+                    navigate('home'); // Refresh page after deletion
+                } catch (error) {
+                    console.error("게시글 삭제 실패:", error);
+                    alert("게시글 삭제에 실패했습니다.");
+                }
+            }
         } else if (target.closest('#logout-button')) {
             e.preventDefault();
             try {
@@ -290,11 +455,13 @@ async function init() {
     setupEventListeners();
 
     onAuthChange(async (user) => {
-        state.currentUser = user;
         if (user) {
-            state.users[user.id] = user;
+            // Firebase에서 사용자 데이터를 가져와 state.currentUser에 저장
+            state.currentUser = await getUser(user.id, state.users);
+            state.users[user.id] = state.currentUser; // 캐시 업데이트
+        } else {
+            state.currentUser = null;
         }
-        // No need to navigate here, render() will be called by language change or other actions
         render();
     });
 

@@ -5,7 +5,9 @@ export function renderAllPostsPage(container, state) {
     if (state.abTestGroup === 'A') {
         // Expert Focus: Organize posts by professional categories
         const categories = ['Visa/Legal', 'Employment', 'Education', 'Daily Life'];
-        filterButtonsHTML = categories.map(cat => `<button class="filter-button" data-type="category" data-value="${cat}">${cat}</button>`).join('');
+        filterButtonsHTML = categories.map(cat =>
+            `<button class="filter-button ${state.activeFilter.type === 'category' && state.activeFilter.value === cat ? 'active' : ''}" data-type="category" data-value="${cat}">${cat}</button>`
+        ).join('');
     } else {
         // Community Focus: Organize posts by user engagement
         const engagementTypes = [
@@ -13,7 +15,9 @@ export function renderAllPostsPage(container, state) {
             { label: 'Recent Questions', value: 'Recent' },
             { label: 'Unanswered', value: 'Unanswered' }
         ];
-        filterButtonsHTML = engagementTypes.map(type => `<button class="filter-button" data-type="engagement" data-value="${type.value}">${type.label}</button>`).join('');
+        filterButtonsHTML = engagementTypes.map(type =>
+            `<button class="filter-button ${state.activeFilter.type === 'engagement' && state.activeFilter.value === type.value ? 'active' : ''}" data-type="engagement" data-value="${type.value}">${type.label}</button>`
+        ).join('');
     }
 
     const postsHTML = state.allPosts.map(post => renderPostCard(post)).join('');
@@ -22,6 +26,10 @@ export function renderAllPostsPage(container, state) {
         <div class="all-posts-page">
             <div class="filter-controls">
                 ${filterButtonsHTML}
+                <div class="sort-controls">
+                    <button class="sort-button ${state.activeSort === 'createdAt' ? 'active' : ''}" data-sort-type="createdAt">최신순</button>
+                    <button class="sort-button ${state.activeSort === 'viewCount' ? 'active' : ''}" data-sort-type="viewCount">인기순</button>
+                </div>
             </div>
             <div class="post-list">
                 ${postsHTML.length > 0 ? postsHTML : '<p>표시할 게시글이 없습니다.</p>'}

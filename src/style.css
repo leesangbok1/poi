@@ -377,6 +377,13 @@ header {
 .answer-card .answer-meta .author-name {
     font-weight: 700;
 }
+.answer-card .answer-meta .author-certification {
+    font-size: 0.75rem;
+    color: var(--primary-blue); /* Use a distinct color */
+    font-weight: 600;
+    margin-left: 0.5rem;
+    vertical-align: middle; /* Align with text */
+}
 .expert-badge {
     background-color: var(--primary-green);
     color: white;
@@ -385,6 +392,19 @@ header {
     padding: 0.2rem 0.5rem;
     border-radius: 9999px;
     margin-left: 0.25rem;
+    display: inline-block; /* Ensure it takes up space */
+    vertical-align: middle; /* Align with text */
+}
+.accepted-badge {
+    background-color: #4CAF50; /* Green for accepted */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    margin-left: 0.5rem;
+    display: inline-block;
+    vertical-align: middle;
 }
 .answer-card .answer-body {
     line-height: 1.6;
@@ -644,4 +664,3 @@ header {
     color: #9ca3af; /* A lighter gray color */
     opacity: 1; /* Override default opacity */
 }
-

@@ -26,7 +26,7 @@ export function renderHomePage(container, state) {
         mainInteractionHTML = `
             <h1>${t('search_knowledge_title')}</h1>
             <form class="search-form">
-                <input type="text" placeholder="${t('search_placeholder')}">
+                <input type="text" placeholder="${randomPlaceholder}">
                 <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> ${t('search_button')}</button>
             </form>
         `;
