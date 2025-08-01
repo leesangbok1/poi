@@ -1,0 +1,13 @@
+프롬프트 6/12: Firebase 연동 및 소셜 로그인
+[Goal] Integrate Firebase Authentication for user management.
+
+[Instructions for AI Developer]
+
+Firebase Integration: Initialize Firebase in your application.
+
+Authentication UI: Add "Login" buttons to the header.
+
+Login Methods: Implement "Sign in with Google" and "Sign in with Facebook".
+
+Dynamic Header: When a user is logged in, replace the "Login" buttons with the user's profile picture. Clicking it should open a dropdown menu with the user's name and a "Logout" button.
+해당 내용 반영해서 회원가입 및 소셜 로그인  기능을 추가시켜줘  
