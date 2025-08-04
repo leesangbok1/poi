@@ -26,5 +26,16 @@
     "login_modal_title": "Login / Sign Up",
     "login_modal_subtitle": "Get started easily with your social account.",
     "google_login": "Continue with Google",
-    "facebook_login": "Continue with Facebook"
+    "facebook_login": "Continue with Facebook",
+    "certification_modal_title": "User Certification",
+    "certification_modal_subtitle": "Please submit documents to verify your identity or expertise.",
+    "certification_type": "Certification Type",
+    "select_certification_type": "Select Type",
+    "alien_registration_card": "Alien Registration Card",
+    "proof_of_employment": "Proof of Employment",
+    "proof_of_enrollment": "Proof of Enrollment",
+    "graduation_certificate": "Graduation Certificate",
+    "certification_file": "Attach File",
+    "submit_certification": "Submit Certification",
+    "certification_prompt": "Verify your information to increase credibility by 100%!"
 }

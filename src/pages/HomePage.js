@@ -13,27 +13,39 @@ export function renderHomePage(container, state) {
         mainInteractionHTML = `
             <h1>${t('ask_a_question_title')}</h1>
             <form class="question-form">
-                <textarea name="question-content" required placeholder="${randomPlaceholder}"></textarea>
+                <div class="form-content-wrapper">
+                    <textarea name="question-content" required placeholder="${randomPlaceholder}"></textarea>
+                    <div class="certification-prompt">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>${t('certification_prompt')}</span>
+                    </div>
+                </div>
                 <button type="submit">${t('submit_question')}</button>
             </form>
         `;
         switchButtonHTML = `
-            <button class="switch-view-button" id="switch-to-search-view" title="${t('switch_to_search_view')}">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
+            <div class="tooltip-container">
+                <button class="switch-view-button" id="switch-to-search-view">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <span class="tooltip-text">${t('switch_to_search_view')}</span>
+            </div>
         `;
     } else {
         mainInteractionHTML = `
             <h1>${t('search_knowledge_title')}</h1>
             <form class="search-form">
                 <input type="text" placeholder="${randomPlaceholder}">
-                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> ${t('search_button')}</button>
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
             </form>
         `;
         switchButtonHTML = `
-            <button class="switch-view-button" id="switch-to-question-view" title="${t('switch_to_question_view')}">
-                <i class="fa-solid fa-pen-to-square"></i>
-            </button>
+            <div class="tooltip-container">
+                <button class="switch-view-button" id="switch-to-question-view">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <span class="tooltip-text">${t('switch_to_question_view')}</span>
+            </div>
         `;
     }
 

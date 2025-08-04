@@ -36,6 +36,7 @@
     "proof_of_enrollment": "재학증명서",
     "graduation_certificate": "졸업증명서",
     "certification_file": "인증 파일",
-    "submit_certification": "인증 제출",
+    "submit_certification": "인증 서류 제출",
+    "certification_prompt": "관련 정보를 인증하면 신뢰도 100% 상승!",
     "certification": "정보 인증"
 }

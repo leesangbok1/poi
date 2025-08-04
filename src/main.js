@@ -247,10 +247,6 @@ function setupEventListeners() {
                 openLoginModal();
                 return;
             }
-            if (!state.currentUser.certification) { // Check for certification
-                openCertificationModal();
-                return;
-            }
             const content = e.target.elements['answer-content'].value.trim();
             const postId = e.target.dataset.postId;
             if (content && postId) {
@@ -305,7 +301,10 @@ function setupEventListeners() {
             }
         } 
         // Certification Modal
-        else if (target.closest('#certification-button')) {
+        else if (target.closest('.certification-prompt')) {
+            e.preventDefault();
+            openCertificationModal();
+        } else if (target.closest('#certification-button')) {
             e.preventDefault();
             openCertificationModal();
         } else if (target.closest('.close-modal-button[data-target="#certification-modal"]') || target.id === 'certification-modal') {
@@ -334,35 +333,7 @@ function setupEventListeners() {
             render();
         }
         // Page navigation and actions
-        else if (target.closest('.post-card')) {
-            e.preventDefault();
-            navigate('postDetail', target.closest('.post-card').dataset.postId);
-        } else if (target.closest('.back-button') || target.closest('.logo')) {
-            e.preventDefault();
-            navigate('home');
-        } else if (target.closest('.load-more-button')) {
-            e.preventDefault();
-            navigate('allPosts');
-        } else if (target.matches('.filter-button')) {
-            e.preventDefault();
-            const type = target.dataset.type;
-            const value = target.dataset.value;
-            navigate('allPosts', { filter: { type, value } });
-        } else if (target.matches('.sort-button')) {
-            e.preventDefault();
-            const sortType = target.dataset.sortType;
-            navigate('allPosts', { sort: sortType });
-        } else if (target.matches('.next-page-button')) {
-            e.preventDefault();
-            state.isLoading = true; render();
-            await handleFetchPaginatedPosts('next');
-            state.isLoading = false; render();
-        } else if (target.matches('.prev-page-button')) {
-            e.preventDefault();
-            state.isLoading = true; render();
-            await handleFetchPaginatedPosts('prev');
-            state.isLoading = false; render();
-        } else if (target.closest('.like-button')) {
+        else if (target.closest('.like-button')) {
             e.preventDefault();
             if (!state.currentUser) {
                 openLoginModal();
@@ -398,6 +369,39 @@ function setupEventListeners() {
                 console.error('클립보드 복사 실패:', err);
                 alert('게시글 링크 복사에 실패했습니다.');
             }
+        } else if (target.closest('.post-card')) {
+            e.preventDefault();
+            const postId = target.closest('.post-card').dataset.postId;
+            if (postId) {
+                navigate('postDetail', postId);
+            } else {
+                console.error('Could not find post-id on clicked card.');
+            }
+        } else if (target.closest('.back-button') || target.closest('.logo')) {
+            e.preventDefault();
+            navigate('home');
+        } else if (target.closest('.load-more-button')) {
+            e.preventDefault();
+            navigate('allPosts');
+        } else if (target.matches('.filter-button')) {
+            e.preventDefault();
+            const type = target.dataset.type;
+            const value = target.dataset.value;
+            navigate('allPosts', { filter: { type, value } });
+        } else if (target.matches('.sort-button')) {
+            e.preventDefault();
+            const sortType = target.dataset.sortType;
+            navigate('allPosts', { sort: sortType });
+        } else if (target.matches('.next-page-button')) {
+            e.preventDefault();
+            state.isLoading = true; render();
+            await handleFetchPaginatedPosts('next');
+            state.isLoading = false; render();
+        } else if (target.matches('.prev-page-button')) {
+            e.preventDefault();
+            state.isLoading = true; render();
+            await handleFetchPaginatedPosts('prev');
+            state.isLoading = false; render();
         } else if (target.closest('.accept-answer-button')) {
             e.preventDefault();
             const button = target.closest('.accept-answer-button');

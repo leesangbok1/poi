@@ -26,5 +26,16 @@
     "login_modal_title": "Đăng nhập / Đăng ký",
     "login_modal_subtitle": "Bắt đầu dễ dàng với tài khoản xã hội của bạn.",
     "google_login": "Tiếp tục với Google",
-    "facebook_login": "Tiếp tục với Facebook"
+    "facebook_login": "Tiếp tục với Facebook",
+    "certification_modal_title": "Xác thực người dùng",
+    "certification_modal_subtitle": "Vui lòng gửi tài liệu để xác minh danh tính hoặc chuyên môn của bạn.",
+    "certification_type": "Loại xác thực",
+    "select_certification_type": "Chọn loại",
+    "alien_registration_card": "Thẻ đăng ký người nước ngoài",
+    "proof_of_employment": "Giấy chứng nhận việc làm",
+    "proof_of_enrollment": "Giấy chứng nhận nhập học",
+    "graduation_certificate": "Bằng tốt nghiệp",
+    "certification_file": "Đính kèm tệp",
+    "submit_certification": "Gửi xác thực",
+    "certification_prompt": "Xác thực thông tin của bạn để tăng độ tin cậy lên 100%!"
 }

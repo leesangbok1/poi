@@ -15,9 +15,7 @@ export function renderHeader(currentUser) {
                     <a href="#" id="logout-button"><i class="fa-solid fa-right-from-bracket"></i> ${t('logout')}</a>
                 </div>
             </div>
-            <button class="menu-button" title="${t('certification')}" id="certification-button">
-                <i class="fa-solid fa-shield-halved"></i>
-            </button>
+            
         `;
     } else {
         authSectionHTML = `
@@ -30,7 +28,6 @@ export function renderHeader(currentUser) {
     return `
         <header>
             <div class="container header-content">
-                <div class="icon-container" style="margin-right: 10px;">🛡️</div>
                 <div class="logo">Viet K-Connect</div>
                 <div class="header-menu">
                     <div class="language-switcher">

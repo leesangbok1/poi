@@ -1,6 +1,8 @@
 import { renderAnswerCard } from '../components/AnswerCard.js';
+import { getTranslator } from '../i18n/i18n.js';
 
 export function renderPostDetailPage(container, post, currentUser) {
+    const t = getTranslator();
     if (!post) {
         container.innerHTML = `<p>게시글을 찾을 수 없습니다.</p><a href="#" class="back-button">홈으로 돌아가기</a>`;
         return;
@@ -29,7 +31,13 @@ export function renderPostDetailPage(container, post, currentUser) {
             <div class="answer-form-section">
                  <h2>답변 등록하기</h2>
                  <form class="answer-form" data-post-id="${post.id}">
-                    <textarea name="answer-content" required placeholder="답변을 입력하세요..."></textarea>
+                    <div class="form-content-wrapper">
+                        <textarea name="answer-content" required placeholder="답변을 입력하세요..."></textarea>
+                        <div class="certification-prompt">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>${t('certification_prompt')}</span>
+                        </div>
+                    </div>
                     <button type="submit">답변 등록</button>
                  </form>
             </div>
